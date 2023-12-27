@@ -1,37 +1,48 @@
 <script lang="ts">
-    import OpenAi from "openai";
-
-    let apiKey = localStorage.getItem("openai-api-key") || "";
-
-    const openai = new OpenAi({
-        apiKey,
-        dangerouslyAllowBrowser: true,
-    });
+    import { onMount } from "svelte";
+    import Canvas from "./lib/components/Canvas.svelte";
+    import Menu from "./lib/components/Menu.svelte";
 
     let image = "";
 
-    const createImage = async () => {
-        const response = await openai.images.generate({
-            model: "dall-e-2",
-            prompt: "A bowl of soup that is also a portal to another dimension, digital art",
-            size: "256x256",
-			response_format: "b64_json"
-        });
+    let canvas: Canvas;
+    let canvasContainer: HTMLDivElement;
+    let width = 0, height = 0;
 
-		console.log(response);
-		
-		console.log(response.data);
-
-        image = response.data[0].b64_json || "";
+    const createImage = (e: any) => {
+        image = e.detail;
+        canvas.createCanvas(image);
     };
+
+    onMount(() => {
+        width = canvasContainer.offsetWidth;
+        height = canvasContainer.offsetHeight;
+    });
 </script>
 
-<input bind:value={apiKey} on:input={() => {
-    openai.apiKey = apiKey
-    localStorage.setItem("openai-api-key", apiKey)
-}} />
+<div class="container">
+    <!-- <div class="canvas"> -->
+    <!-- svelte-ignore a11y-img-redundant-alt -->
+    <!-- <img src="data:image/png;base64,{image}" alt="DALL-E Generated image" /> -->
+    <!-- </div> -->
+    <div class="canvas" bind:this={canvasContainer}>
+        <Canvas bind:this={canvas} width={width - 10} height={height - 10} />
+    </div>
+    <div class="menu">
+        <Menu bind:image on:imageCreated={createImage} />
+    </div>
+</div>
 
-<button on:click={createImage}>Create Image</button>
+<style>
+    .container {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+    }
 
-<!-- svelte-ignore a11y-img-redundant-alt -->
-<img src="data:image/png;base64,{image}" alt="DALL-E Generated image" />
+    .canvas {
+        flex: 1;
+    }
+</style>
