@@ -46,3 +46,31 @@
         flex: 1;
     }
 </style>
+
+
+<!-- const startDrawing = (e: MouseEvent) => {
+    isDrawing = true;
+    draw(e);
+};
+
+const draw = (e: MouseEvent) => {
+    if (!isDrawing) return;
+
+    ctx.lineWidth = 10;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#000000";
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+};
+
+const stopDrawing = () => {
+    isDrawing = false;
+    ctx.beginPath();
+}; -->

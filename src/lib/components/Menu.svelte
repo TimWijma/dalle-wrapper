@@ -54,6 +54,7 @@
         padding: 16px;
         border-left: 2px solid #333;
         flex: 1;
+        user-select: none;
     }
 
     input {

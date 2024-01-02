@@ -8,12 +8,12 @@
     let logicCanvas: HTMLCanvasElement;
     let drawCtx: CanvasRenderingContext2D;
     let logicCtx: CanvasRenderingContext2D;
-    let isDrawing = false;
+    let isDragging = false;
 
-    let image: CanvasImage;
+    let image = new CanvasImage(0, 0, 256, 256, "");
 
     export const createCanvas = (imageString: string) => {
-        image = new CanvasImage(0, 0, 256, 256, imageString);
+        image = new CanvasImage(200, 200, 256, 256, imageString);
 
         drawImage(image);
     };
@@ -22,24 +22,27 @@
         const img = new Image();
 
         img.onload = () => {
-            drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-            drawCtx.beginPath();
-            drawCtx.strokeStyle = "red";
-            drawCtx.strokeRect(image.x, image.y, image.width, image.height);
+            clearCanvas();
+            drawBorder(image);
             drawCtx.drawImage(img, image.x, image.y, image.width, image.height);
         };
 
         img.src = image.image;
     };
 
-    const checkImage = (e: any) => {
-        console.log(e);
+    const drawBorder = (image: CanvasImage) => {
+        logicCtx.beginPath();
+        logicCtx.strokeStyle = "red";
+        logicCtx.strokeRect(image.x, image.y, image.width, image.height);
+    };
 
-        console.log("Width range", image.x, image.x + image.width);
-        console.log("Height range", image.y, image.y + image.height);
-        console.log("Clicked at", e.offsetX, e.offsetY);
+    const clearCanvas = () => {
+        drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        logicCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    };
 
-        if (!image) return;
+    const checkImage = (e: any): boolean => {
+        if (!image) return false;
 
         if (
             e.offsetX >= image.x &&
@@ -47,39 +50,34 @@
             e.offsetY >= image.y &&
             e.offsetY <= image.y + image.height
         ) {
+            return true;
         }
 
-        image.x = e.offsetX;
-        image.y = e.offsetY;
+        return false;
+    };
+
+    let startX = 0;
+    let startY = 0;
+    const startDragging = (e: MouseEvent) => {
+        if (!checkImage(e)) return;
+
+        isDragging = true;
+
+        startX = e.offsetX - image.x;
+        startY = e.offsetY - image.y;
+    };
+
+    const drag = (e: MouseEvent) => {
+        if (!isDragging) return;
+
+        image.x = e.offsetX - startX;
+        image.y = e.offsetY - startY;
         drawImage(image);
     };
 
-    // const startDrawing = (e: MouseEvent) => {
-    //     isDrawing = true;
-    //     draw(e);
-    // };
-
-    // const draw = (e: MouseEvent) => {
-    //     if (!isDrawing) return;
-
-    //     ctx.lineWidth = 10;
-    //     ctx.lineCap = "round";
-    //     ctx.strokeStyle = "#000000";
-
-    //     const rect = canvas.getBoundingClientRect();
-    //     const x = e.clientX - rect.left;
-    //     const y = e.clientY - rect.top;
-
-    //     ctx.lineTo(x, y);
-    //     ctx.stroke();
-    //     ctx.beginPath();
-    //     ctx.moveTo(x, y);
-    // };
-
-    // const stopDrawing = () => {
-    //     isDrawing = false;
-    //     ctx.beginPath();
-    // };
+    const stopDragging = () => {
+        isDragging = false;
+    };
 
     onMount(() => {
         drawCtx = drawCanvas.getContext("2d")!;
@@ -87,17 +85,17 @@
     });
 </script>
 
-<!-- svelte-ignore a11y-mouse-events-have-key-events -->
-<!-- <canvas
-    bind:this={canvas}
-    on:mousedown={startDrawing}
-    on:mousemove={draw}
-    on:mouseup={stopDrawing}
-    on:mouseout={stopDrawing}
-    {width}
-    {height}
-></canvas> -->
+<svelte:window on:mousemove={drag} on:mouseup={stopDragging} />
 
 <canvas bind:this={drawCanvas} {width} {height}></canvas>
+<!-- svelte-ignore a11y-mouse-events-have-key-events -->
+<canvas bind:this={logicCanvas} {width} {height} on:mousedown={startDragging}
+></canvas>
 
-<canvas bind:this={logicCanvas} {width} {height} on:click={checkImage}></canvas>
+<style>
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+</style>
