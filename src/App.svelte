@@ -2,12 +2,15 @@
     import { onMount } from "svelte";
     import Canvas from "./lib/components/Canvas.svelte";
     import Menu from "./lib/components/Menu.svelte";
+    import { images } from "./lib/globalStore";
 
     let image = "";
 
     let canvas: Canvas;
     let canvasContainer: HTMLDivElement;
     let width = 0, height = 0;
+
+    $images = [];
 
     const createImage = (e: any) => {
         image = e.detail;

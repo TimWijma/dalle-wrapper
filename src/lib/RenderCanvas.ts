@@ -1,9 +1,12 @@
 import { Canvas } from "./Canvas";
 import type { CanvasImage } from "./CanvasImage";
 import type { LogicCanvas } from "./LogicCanvas";
+import { images } from "./globalStore";
+import { get } from "svelte/store";
 
 export class RenderCanvas extends Canvas {
-    logicCanvas: LogicCanvas;
+    private logicCanvas: LogicCanvas;
+    private imageCache: { [key: number]: HTMLImageElement } = {};
 
     constructor(
         canvas: HTMLCanvasElement,
@@ -15,42 +18,47 @@ export class RenderCanvas extends Canvas {
         this.logicCanvas = logicCanvas;
     }
 
-    drawImage = (image: CanvasImage, border: boolean = false) => {
-        const img = new Image();
+    drawImages = (selectedImage: CanvasImage | null) => {
+        const sortByLayer = get(images).sort((a, b) => a.layer - b.layer);
 
-        img.onload = () => {
-            this.clear();
-            this.logicCanvas.clear();
+        this.clear();
+        this.logicCanvas.clear();
 
-            if (border) {
-                this.logicCanvas.drawBorder(image);
-                this.logicCanvas.drawCorners(image);
+        sortByLayer.forEach((image) => {
+            if (image === selectedImage) {
+                this.drawImage(image, true);
+            } else {
+                this.drawImage(image, false);
             }
-
-            this.context.drawImage(
-                img,
-                image.x,
-                image.y,
-                image.width,
-                image.height
-            );
-        };
-
-        img.src = image.imageString;
+        });
     };
 
-    checkImage = (e: MouseEvent, image: CanvasImage): boolean => {
-        if (!image) return false;
+    drawImage = (image: CanvasImage, border: boolean = false) => {
+        let img = this.imageCache[image.identifier];
 
-        if (
-            e.offsetX >= image.x &&
-            e.offsetX <= image.x + image.width &&
-            e.offsetY >= image.y &&
-            e.offsetY <= image.y + image.height
-        ) {
-            return true;
+        if (!img) {
+            new Promise((resolve, reject) => {
+                img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => {
+                    console.log("error loading image");
+                    reject;
+                };
+                img.src = image.imageString;
+                this.imageCache[image.identifier] = img;
+            });
+        }
+        if (border) {
+            this.logicCanvas.drawBorder(image);
+            this.logicCanvas.drawCorners(image);
         }
 
-        return false;
+        this.context.drawImage(
+            img,
+            image.x,
+            image.y,
+            image.width,
+            image.height
+        );
     };
 }

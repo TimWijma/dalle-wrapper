@@ -1,12 +1,15 @@
+import { get } from "svelte/store";
 import { Canvas } from "./Canvas";
 import type { CanvasImage } from "./CanvasImage";
 import type { RenderCanvas } from "./RenderCanvas";
+import { images } from "./globalStore";
 
 export class LogicCanvas extends Canvas {
-    renderCanvas: RenderCanvas;
-    isDragging: boolean = false;
-    startX: number = 0;
-    startY: number = 0;
+    private renderCanvas: RenderCanvas;
+    private isDragging: boolean = false;
+    private startX: number = 0;
+    private startY: number = 0;
+    private selectedImage: CanvasImage | null = null;
 
     constructor(
         canvas: HTMLCanvasElement,
@@ -56,38 +59,109 @@ export class LogicCanvas extends Canvas {
         );
     };
 
-    selectImage = (e: MouseEvent, image: CanvasImage) => {
-        if (!this.renderCanvas.checkImage(e, image)) {
-            this.renderCanvas.drawImage(image, false);
-        } else {
-            this.renderCanvas.drawImage(image, true);
+    checkImage = (e: MouseEvent, image: CanvasImage): boolean => {
+        if (
+            e.offsetX >= image.x &&
+            e.offsetX <= image.x + image.width &&
+            e.offsetY >= image.y &&
+            e.offsetY <= image.y + image.height
+        ) {
+            return true;
         }
+
+        return false;
     };
 
-    startDragging = (e: MouseEvent, image: CanvasImage) => {
-        if (!this.renderCanvas.checkImage(e, image)) return;
+    selectImage = (e: MouseEvent) => {
+        let clickedImages = get(images).filter((image) =>
+            this.checkImage(e, image)
+        );
+
+        if (clickedImages.length === 0) {
+            this.selectedImage = null;
+            this.renderCanvas.drawImages(null);
+            return;
+        }
+
+        const clickedImage = clickedImages.reduce((highest, image) =>
+            highest.layer > image.layer ? highest : image
+        );
+
+        let image = get(images).find((image) => image === clickedImage);
+        if (image) {
+            image.layer =
+                Math.max(...get(images).map((image) => image.layer)) + 1;
+        }
+
+        if (image) {
+            this.renderCanvas.drawImages(image);
+        }
+
+        this.selectedImage = image ?? null;
+
+        this.checkHover(e);
+    };
+
+    startDragging = (e: MouseEvent) => {
+        this.selectImage(e);
+        if (!this.selectedImage) return;
+        if (!this.checkImage(e, this.selectedImage)) return;
 
         this.isDragging = true;
 
-        this.startX = e.offsetX - image.x;
-        this.startY = e.offsetY - image.y;
+        this.startX = e.offsetX - this.selectedImage.x;
+        this.startY = e.offsetY - this.selectedImage.y;
     };
 
-    drag = (e: MouseEvent, image: CanvasImage) => {
-        if (!this.isDragging) return;
+    drag = (e: MouseEvent) => {
+        if (!this.isDragging || !this.selectedImage) return;
 
-        image.x = e.clientX - this.startX;
-        image.y = e.clientY - this.startY;
+        this.selectedImage.x = e.clientX - this.startX;
+        this.selectedImage.y = e.clientY - this.startY;
 
-        this.renderCanvas.drawImage(image, true);
+        // this.renderCanvas.drawImage(image, true);
+        this.renderCanvas.drawImages(this.selectedImage);
     };
 
-    stopDragging = (e: MouseEvent, image: CanvasImage) => {
+    stopDragging = () => {
         if (!this.isDragging) return;
 
         this.isDragging = false;
 
-        this.renderCanvas.drawImage(image, false);
-        console.log("stop dragging");
+        this.renderCanvas.drawImages(this.selectedImage);
+    };
+
+    checkHover = (e: MouseEvent) => {
+        if (!this.selectedImage) return;
+
+        // if (
+        //     e.offsetX >= this.selectedImage.x - 5 &&
+        //     e.offsetX <= this.selectedImage.x + 5
+        // ) {
+        //     this.canvas.style.cursor = "w-resize";
+        //     console.log("w-resize");
+        // } else if (
+        //     e.offsetX >= this.selectedImage.x + this.selectedImage.width - 5 &&
+        //     e.offsetX <= this.selectedImage.x + this.selectedImage.width + 5
+        // ) {
+        //     this.canvas.style.cursor = "e-resize";
+        //     console.log("e-resize");
+        // } else if (
+        //     e.offsetY >= this.selectedImage.y - 5 &&
+        //     e.offsetY <= this.selectedImage.y + 5
+        // ) {
+        //     this.canvas.style.cursor = "n-resize";
+        //     console.log("n-resize");
+        // } else if (
+        //     e.offsetY >= this.selectedImage.y + this.selectedImage.height - 5 &&
+        //     e.offsetY <= this.selectedImage.y + this.selectedImage.height + 5
+        // ) {
+        //     this.canvas.style.cursor = "s-resize";
+        //     console.log("s-resize");
+        // } else if (this.checkImage(e, this.selectedImage)) {
+        //     this.canvas.style.cursor = "move";
+        // } else {
+        //     this.canvas.style.cursor = "default";
+        // }
     };
 }
