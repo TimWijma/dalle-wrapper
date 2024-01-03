@@ -3,12 +3,12 @@ export class CanvasImage {
     y: number = 0;
     width: number = 0;
     height: number = 0;
-    image: string;
-    constructor(x: number, y: number, width: number, height: number, image: string) {
+    imageString: string;
+    constructor(x: number, y: number, width: number, height: number, imageString: string) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.image = `data:image/png;base64,${image}`;
+        this.imageString = `data:image/png;base64,${imageString}`;
     }
 }

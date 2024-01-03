@@ -27,7 +27,7 @@
             drawCtx.drawImage(img, image.x, image.y, image.width, image.height);
         };
 
-        img.src = image.image;
+        img.src = image.imageString;
     };
 
     const drawBorder = (image: CanvasImage) => {
@@ -70,8 +70,9 @@
     const drag = (e: MouseEvent) => {
         if (!isDragging) return;
 
-        image.x = e.offsetX - startX;
-        image.y = e.offsetY - startY;
+        image.x = e.clientX - startX;
+        image.y = e.clientY - startY;
+
         drawImage(image);
     };
 
@@ -88,7 +89,6 @@
 <svelte:window on:mousemove={drag} on:mouseup={stopDragging} />
 
 <canvas bind:this={drawCanvas} {width} {height}></canvas>
-<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <canvas bind:this={logicCanvas} {width} {height} on:mousedown={startDragging}
 ></canvas>
 
