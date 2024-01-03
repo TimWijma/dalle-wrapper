@@ -9,16 +9,11 @@
     export let width: number, height: number;
 
     let drawCanvasElement: HTMLCanvasElement,
-        logicCanvasElement: HTMLCanvasElement,
-        offScreenCanvasElement: HTMLCanvasElement;
-    let renderCanvas: RenderCanvas,
-        logicCanvas: LogicCanvas,
-        offScreenCanvas: RenderCanvas;
+        logicCanvasElement: HTMLCanvasElement;
+    let renderCanvas: RenderCanvas, logicCanvas: LogicCanvas;
 
     const BORDER_WIDTH = 10;
     const BORDER_COLOR = "red";
-
-    let image = new CanvasImage(0, 0, 256, 256, "", 0, 0);
 
     export const createCanvas = (imageString: string) => {
         $images = [];
@@ -39,8 +34,7 @@
             $images.length
         );
 
-        $images = [...$images, image];
-
+        $images.push(image);
         renderCanvas.drawImages(null);
     };
 
@@ -66,33 +60,20 @@
     on:mouseup={logicCanvas.stopDragging}
 />
 
-<div class="container">
-    <canvas bind:this={drawCanvasElement} {width} {height}></canvas>
-    <canvas
-        bind:this={logicCanvasElement}
-        {width}
-        {height}
-        on:click={logicCanvas.selectImage}
-        on:mousedown={logicCanvas.startDragging}
-        on:mousemove={logicCanvas.checkHover}
-    ></canvas>
-</div>
-
-<canvas class="offscreen" bind:this={offScreenCanvasElement} {width} {height}
+<canvas bind:this={drawCanvasElement} {width} {height}></canvas>
+<canvas
+    bind:this={logicCanvasElement}
+    {width}
+    {height}
+    on:click={logicCanvas.selectImage}
+    on:mousedown={logicCanvas.startDragging}
+    on:mousemove={(e) => logicCanvas.checkHover(e, false)}
 ></canvas>
 
 <style>
-    .container {
-        position: relative;
-    }
-
-    .container canvas {
+    canvas {
         position: absolute;
         top: 0;
         left: 0;
-    }
-
-    .offscreen {
-        display: none;
     }
 </style>

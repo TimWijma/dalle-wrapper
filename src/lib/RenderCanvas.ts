@@ -5,7 +5,7 @@ import { images } from "./globalStore";
 import { get } from "svelte/store";
 
 export class RenderCanvas extends Canvas {
-    private logicCanvas: LogicCanvas;
+    logicCanvas: LogicCanvas;
     private imageCache: { [key: number]: HTMLImageElement } = {};
 
     constructor(
@@ -25,11 +25,7 @@ export class RenderCanvas extends Canvas {
         this.logicCanvas.clear();
 
         sortByLayer.forEach((image) => {
-            if (image === selectedImage) {
-                this.drawImage(image, true);
-            } else {
-                this.drawImage(image, false);
-            }
+            this.drawImage(image, image === selectedImage);
         });
     };
 

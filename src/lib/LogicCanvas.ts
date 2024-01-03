@@ -7,6 +7,8 @@ import { images } from "./globalStore";
 export class LogicCanvas extends Canvas {
     private renderCanvas: RenderCanvas;
     private isDragging: boolean = false;
+    private isResizing: boolean = false;
+    private resizeDirection: string = "";
     private startX: number = 0;
     private startY: number = 0;
     private selectedImage: CanvasImage | null = null;
@@ -99,10 +101,21 @@ export class LogicCanvas extends Canvas {
 
         this.selectedImage = image ?? null;
 
-        this.checkHover(e);
+        this.checkHover(e, false);
     };
 
     startDragging = (e: MouseEvent) => {
+        console.log("starting");
+
+        this.checkHover(e, true);
+
+        if (this.resizeDirection !== "") {
+            this.isResizing = true;
+            return;
+        }
+
+        console.log("not resizing");
+
         this.selectImage(e);
         if (!this.selectedImage) return;
         if (!this.checkImage(e, this.selectedImage)) return;
@@ -114,54 +127,117 @@ export class LogicCanvas extends Canvas {
     };
 
     drag = (e: MouseEvent) => {
-        if (!this.isDragging || !this.selectedImage) return;
+        if (!this.selectedImage) return;
 
-        this.selectedImage.x = e.clientX - this.startX;
-        this.selectedImage.y = e.clientY - this.startY;
+        if (this.isResizing) {
+            this.resizeImage(e);
+            return;
+        }
 
-        // this.renderCanvas.drawImage(image, true);
+        this.dragImage(e);
+    };
+
+    dragImage = (e: MouseEvent) => {
+        if (!this.selectedImage || !this.isDragging) return;
+
+        this.selectedImage.x = e.offsetX - this.startX;
+        this.selectedImage.y = e.offsetY - this.startY;
+
+        this.renderCanvas.drawImages(this.selectedImage);
+    };
+
+    resizeImage = (e: MouseEvent) => {
+        if (!this.selectedImage || !this.isResizing) return;
+        console.log("resizing");
+
+        const { x, y, width, height } = this.selectedImage;
+        const aspectRatio = width / height;
+
+        let newWidth = 0;
+        let newHeight = 0;
+
+        if (this.resizeDirection === "nw") {
+            newWidth = Math.max(
+                width + (x - e.offsetX),
+                width + (y - e.offsetY) * aspectRatio
+            );
+            newHeight = newWidth / aspectRatio;
+            this.selectedImage.x = x + (width - newWidth);
+            this.selectedImage.y = y + (height - newHeight);
+        } else if (this.resizeDirection === "ne") {
+            newWidth = Math.max(
+                e.offsetX - x,
+                width + (y - e.offsetY) * aspectRatio
+            );
+            newHeight = newWidth / aspectRatio;
+            this.selectedImage.y = y + (height - newHeight);
+        } else if (this.resizeDirection === "sw") {
+            newWidth = Math.max(
+                width + (x - e.offsetX),
+                (e.offsetY - y) * aspectRatio
+            );
+            newHeight = newWidth / aspectRatio;
+            this.selectedImage.x = x + (width - newWidth);
+        } else if (this.resizeDirection === "se") {
+            newWidth = Math.max(e.offsetX - x, (e.offsetY - y) * aspectRatio);
+            newHeight = newWidth / aspectRatio;
+        }
+
+        this.selectedImage.width = newWidth;
+        this.selectedImage.height = newHeight;
         this.renderCanvas.drawImages(this.selectedImage);
     };
 
     stopDragging = () => {
-        if (!this.isDragging) return;
+        console.log("stopping");
+
+        if (!this.isDragging && !this.isResizing) return;
 
         this.isDragging = false;
+        this.isResizing = false;
+        this.resizeDirection = "";
 
         this.renderCanvas.drawImages(this.selectedImage);
     };
 
-    checkHover = (e: MouseEvent) => {
+    isMouseOnCorner = (e: MouseEvent, x: number, y: number): boolean => {
+        return (
+            e.offsetX >= x - this.borderWidth &&
+            e.offsetX <= x + this.borderWidth &&
+            e.offsetY >= y - this.borderWidth &&
+            e.offsetY <= y + this.borderWidth
+        );
+    };
+
+    checkHover = (e: MouseEvent, setDirection: boolean = false) => {
         if (!this.selectedImage) return;
 
-        // if (
-        //     e.offsetX >= this.selectedImage.x - 5 &&
-        //     e.offsetX <= this.selectedImage.x + 5
-        // ) {
-        //     this.canvas.style.cursor = "w-resize";
-        //     console.log("w-resize");
-        // } else if (
-        //     e.offsetX >= this.selectedImage.x + this.selectedImage.width - 5 &&
-        //     e.offsetX <= this.selectedImage.x + this.selectedImage.width + 5
-        // ) {
-        //     this.canvas.style.cursor = "e-resize";
-        //     console.log("e-resize");
-        // } else if (
-        //     e.offsetY >= this.selectedImage.y - 5 &&
-        //     e.offsetY <= this.selectedImage.y + 5
-        // ) {
-        //     this.canvas.style.cursor = "n-resize";
-        //     console.log("n-resize");
-        // } else if (
-        //     e.offsetY >= this.selectedImage.y + this.selectedImage.height - 5 &&
-        //     e.offsetY <= this.selectedImage.y + this.selectedImage.height + 5
-        // ) {
-        //     this.canvas.style.cursor = "s-resize";
-        //     console.log("s-resize");
-        // } else if (this.checkImage(e, this.selectedImage)) {
-        //     this.canvas.style.cursor = "move";
-        // } else {
-        //     this.canvas.style.cursor = "default";
-        // }
+        const { x, y, width, height } = this.selectedImage;
+
+        let direction = "";
+
+        if (this.isMouseOnCorner(e, x, y)) {
+            this.canvas.style.cursor = "nw-resize";
+            direction = "nw";
+        } else if (this.isMouseOnCorner(e, x + width, y)) {
+            this.canvas.style.cursor = "ne-resize";
+            direction = "ne";
+        } else if (this.isMouseOnCorner(e, x, y + height)) {
+            this.canvas.style.cursor = "sw-resize";
+            direction = "sw";
+        } else if (this.isMouseOnCorner(e, x + width, y + height)) {
+            this.canvas.style.cursor = "se-resize";
+            direction = "se";
+        } else if (this.checkImage(e, this.selectedImage)) {
+            this.canvas.style.cursor = "move";
+            direction = "";
+        } else {
+            this.canvas.style.cursor = "default";
+            direction = "";
+        }
+
+        if (setDirection) {
+            this.resizeDirection = direction;
+        }
     };
 }
