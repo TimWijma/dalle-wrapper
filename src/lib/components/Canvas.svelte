@@ -16,7 +16,7 @@
     export const createCanvas = (imageString: string) => {
         $images = $images.filter((image) => image.identifier === -1);
         addImage(250, 250, imageString);
-        addImage(200, 200, imageString);
+        // addImage(200, 200, imageString);
     };
 
     const addImage = (x: number, y: number, imageString: string) => {
@@ -43,6 +43,7 @@
             BORDER_WIDTH,
             BORDER_COLOR
         );
+        
         $logicCanvas = new LogicCanvas(
             logicCanvasElement,
             $renderCanvas,
@@ -60,9 +61,9 @@
 
 <canvas bind:this={drawCanvasElement} {width} {height}></canvas>
 <canvas
-    bind:this={logicCanvasElement}
     {width}
     {height}
+    bind:this={logicCanvasElement}
     on:mousedown={$logicCanvas.startDragging}
     on:mousemove={(e) => $logicCanvas.checkHover(e, false)}
     ></canvas>

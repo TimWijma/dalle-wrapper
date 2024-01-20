@@ -1,6 +1,6 @@
 <script lang="ts">
     import { testdata } from "../testdata";
-    import { logicCanvas } from "../globalStore";
+    import { logicCanvas, renderCanvas } from "../globalStore";
     import { createEventDispatcher } from "svelte";
     import { OpenAIController } from "../OpenAIController";
 
@@ -14,28 +14,24 @@
     let prompt = "An ocean with mountains in the background and a sunset sky.";
 
     const createImage = async () => {
-        // const response = await $openai.images.generate({
-        //     model: "dall-e-2",
-        //     prompt: prompt,
-        //     size: "256x256",
-        // 	response_format: "b64_json"
-        // });
-
-        const response = testdata;
-
-        // console.log(response);
-
-        // console.log(response.data);
-
-        image = response.data[0].b64_json || "";
+        image = testdata.data[0].b64_json || "";
 
         dispatch("imageCreated", image);
     };
 
     const getMask = async () => {
+        console.log("get mask");
+        
         const maskBlob = await $logicCanvas.getMask();
         if (maskBlob) {
-            openai.outpaint(maskBlob, prompt);
+            let newImage = await openai.outpaint(maskBlob, prompt);
+            if (newImage) {
+                $renderCanvas.updateHiddenCanvas(newImage);
+            } else {
+                console.log("no new image");
+            }
+        } else {
+            console.log("no blob");
         }
     };
 </script>

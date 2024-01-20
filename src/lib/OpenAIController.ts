@@ -20,7 +20,8 @@ export class OpenAIController {
             image: file,
             prompt: prompt,
             model: "dall-e-2",
-            response_format: "b64_json"
+            response_format: "b64_json",
+            size: "256x256"
         })
 
         return response.data[0].b64_json;
