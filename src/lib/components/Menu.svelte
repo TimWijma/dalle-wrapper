@@ -1,16 +1,17 @@
 <script lang="ts">
     import { testdata } from "../testdata";
-    import { openai_api_key, openai, logicCanvas } from "../globalStore";
+    import { logicCanvas } from "../globalStore";
     import { createEventDispatcher } from "svelte";
+    import { OpenAIController } from "../OpenAIController";
 
     export let image = "";
 
     const dispatch = createEventDispatcher();
 
-    $openai_api_key = localStorage.getItem("openai-api-key") || "";
-    $openai.apiKey = $openai_api_key;
+    let apiKey = localStorage.getItem("openai-api-key") || "";
+    let openai = new OpenAIController(apiKey);
 
-    let prompt = "";
+    let prompt = "An ocean with mountains in the background and a sunset sky.";
 
     const createImage = async () => {
         // const response = await $openai.images.generate({
@@ -31,11 +32,12 @@
         dispatch("imageCreated", image);
     };
 
-    const getMask = () => {
-        const maskUrl = $logicCanvas.getMask()
-        console.log(maskUrl);
-        
-    }
+    const getMask = async () => {
+        const maskBlob = await $logicCanvas.getMask();
+        if (maskBlob) {
+            openai.outpaint(maskBlob, prompt);
+        }
+    };
 </script>
 
 <div class="container">
@@ -44,11 +46,11 @@
     <button on:click={createImage}>Create Image</button>
 
     <input
-        bind:value={$openai_api_key}
+        bind:value={apiKey}
         placeholder="API key"
         on:input={() => {
-            $openai.apiKey = $openai_api_key;
-            localStorage.setItem("openai-api-key", $openai_api_key);
+            openai = new OpenAIController(apiKey);
+            localStorage.setItem("openai-api-key", apiKey);
         }}
     />
 

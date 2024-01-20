@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import { Canvas } from "./Canvas";
 import type { CanvasImage } from "./CanvasImage";
-import type { RenderCanvas } from "./RenderCanvas";
+import { RenderCanvas } from "./RenderCanvas";
 import { images } from "./globalStore";
 
 export class LogicCanvas extends Canvas {
@@ -253,7 +253,7 @@ export class LogicCanvas extends Canvas {
         }
     };
 
-    getMask() {
+    async getMask() {
         let tmpCanvas = document.createElement("canvas");
         let tmpContext = tmpCanvas.getContext("2d")!;
 
@@ -261,6 +261,9 @@ export class LogicCanvas extends Canvas {
 
         tmpCanvas.width = width;
         tmpCanvas.height = height;
+
+        tmpContext.fillStyle = "transparent";
+        tmpContext.fillRect(0, 0, width, height);
 
         tmpContext.drawImage(
             this.renderCanvas.canvas,
@@ -274,6 +277,23 @@ export class LogicCanvas extends Canvas {
             height
         );
 
-        return tmpCanvas.toDataURL();
+        let drawingFrameBlob: Blob;
+
+        try {
+            drawingFrameBlob = await new Promise((resolve, reject) => {
+                tmpCanvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(blob);
+                    } else {
+                        reject("Error creating blob");
+                    }
+                });
+            });
+        } catch (e) {
+            console.log(e);
+            return;
+        }
+        
+        return drawingFrameBlob;
     }
 }
