@@ -10,7 +10,7 @@
     let canvasContainer: HTMLDivElement;
     let width = 0, height = 0;
 
-    $images = [];
+    $images = $images.filter((image) => image.identifier === -1);
 
     const createImage = (e: any) => {
         image = e.detail;

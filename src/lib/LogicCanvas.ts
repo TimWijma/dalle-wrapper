@@ -12,6 +12,9 @@ export class LogicCanvas extends Canvas {
     private startX: number = 0;
     private startY: number = 0;
     private selectedImage: CanvasImage | null = null;
+    private drawingFrame = get(images).find(
+        (image) => image.identifier === -1
+    )!;
 
     constructor(
         canvas: HTMLCanvasElement,
@@ -75,6 +78,8 @@ export class LogicCanvas extends Canvas {
     };
 
     selectImage = (e: MouseEvent) => {
+        console.log("selecting");
+
         let clickedImages = get(images).filter((image) =>
             this.checkImage(e, image)
         );
@@ -82,6 +87,13 @@ export class LogicCanvas extends Canvas {
         if (clickedImages.length === 0) {
             this.selectedImage = null;
             this.renderCanvas.drawImages(null);
+            return;
+        }
+
+        // Drawing frame has layer -1, so without this check it would never be selected
+        if (clickedImages.includes(this.drawingFrame)) {
+            this.selectedImage = this.drawingFrame;
+            this.renderCanvas.drawImages(this.selectedImage);
             return;
         }
 
@@ -240,4 +252,28 @@ export class LogicCanvas extends Canvas {
             this.resizeDirection = direction;
         }
     };
+
+    getMask() {
+        let tmpCanvas = document.createElement("canvas");
+        let tmpContext = tmpCanvas.getContext("2d")!;
+
+        const { width, height, x, y } = this.drawingFrame;
+
+        tmpCanvas.width = width;
+        tmpCanvas.height = height;
+
+        tmpContext.drawImage(
+            this.renderCanvas.canvas,
+            x,
+            y,
+            width,
+            height,
+            0,
+            0,
+            width,
+            height
+        );
+
+        return tmpCanvas.toDataURL();
+    }
 }

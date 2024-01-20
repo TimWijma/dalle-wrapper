@@ -1,6 +1,6 @@
 <script lang="ts">
     import { testdata } from "../testdata";
-    import { openai_api_key, openai } from "../globalStore";
+    import { openai_api_key, openai, logicCanvas } from "../globalStore";
     import { createEventDispatcher } from "svelte";
 
     export let image = "";
@@ -30,6 +30,12 @@
 
         dispatch("imageCreated", image);
     };
+
+    const getMask = () => {
+        const maskUrl = $logicCanvas.getMask()
+        console.log(maskUrl);
+        
+    }
 </script>
 
 <div class="container">
@@ -45,6 +51,8 @@
             localStorage.setItem("openai-api-key", $openai_api_key);
         }}
     />
+
+    <button on:click={() => getMask()}>get mask</button>
 </div>
 
 <style>

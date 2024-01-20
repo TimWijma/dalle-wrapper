@@ -1,22 +1,20 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { CanvasImage } from "../CanvasImage";
-    import { testdata } from "../testdata";
     import { RenderCanvas } from "../RenderCanvas";
     import { LogicCanvas } from "../LogicCanvas";
-    import { images } from "../globalStore";
+    import { images, logicCanvas, renderCanvas } from "../globalStore";
 
     export let width: number, height: number;
 
     let drawCanvasElement: HTMLCanvasElement,
         logicCanvasElement: HTMLCanvasElement;
-    let renderCanvas: RenderCanvas, logicCanvas: LogicCanvas;
 
     const BORDER_WIDTH = 10;
     const BORDER_COLOR = "red";
 
     export const createCanvas = (imageString: string) => {
-        $images = [];
+        $images = $images.filter((image) => image.identifier === -1);
         addImage(250, 250, imageString);
         addImage(200, 200, imageString);
     };
@@ -35,29 +33,29 @@
         );
 
         $images.push(image);
-        renderCanvas.drawImages(null);
+        $renderCanvas.drawImages(null);
     };
 
     onMount(() => {
-        renderCanvas = new RenderCanvas(
+        $renderCanvas = new RenderCanvas(
             drawCanvasElement,
-            logicCanvas,
+            $logicCanvas,
             BORDER_WIDTH,
             BORDER_COLOR
         );
-        logicCanvas = new LogicCanvas(
+        $logicCanvas = new LogicCanvas(
             logicCanvasElement,
-            renderCanvas,
+            $renderCanvas,
             BORDER_WIDTH,
             BORDER_COLOR
         );
-        renderCanvas.logicCanvas = logicCanvas;
+        $renderCanvas.logicCanvas = $logicCanvas;
     });
 </script>
 
 <svelte:window
-    on:mousemove={logicCanvas.drag}
-    on:mouseup={logicCanvas.stopDragging}
+    on:mousemove={$logicCanvas.drag}
+    on:mouseup={$logicCanvas.stopDragging}
 />
 
 <canvas bind:this={drawCanvasElement} {width} {height}></canvas>
@@ -65,11 +63,10 @@
     bind:this={logicCanvasElement}
     {width}
     {height}
-    on:click={logicCanvas.selectImage}
-    on:mousedown={logicCanvas.startDragging}
-    on:mousemove={(e) => logicCanvas.checkHover(e, false)}
-></canvas>
-
+    on:mousedown={$logicCanvas.startDragging}
+    on:mousemove={(e) => $logicCanvas.checkHover(e, false)}
+    ></canvas>
+    
 <style>
     canvas {
         position: absolute;
