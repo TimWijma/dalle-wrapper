@@ -22,7 +22,7 @@
     const getMask = async () => {
         console.log("get mask");
         
-        const maskBlob = await $logicCanvas.getMask();
+        const maskBlob = await $logicCanvas.getBlob();
         if (maskBlob) {
             let newImage = await openai.outpaint(maskBlob, prompt);
             if (newImage) {

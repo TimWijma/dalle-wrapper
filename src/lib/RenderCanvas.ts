@@ -24,7 +24,7 @@ export class RenderCanvas extends Canvas {
         this.hiddenCanvas = hiddenCanvas;
     }
 
-    getImageSrc = (image: CanvasImage): HTMLImageElement => {
+    private getImageSrc = (image: CanvasImage): HTMLImageElement => {
         let img = this.imageCache[image.identifier];
 
         if (!img) {
@@ -43,7 +43,7 @@ export class RenderCanvas extends Canvas {
         return img;
     };
 
-    drawImages = (selectedImage: CanvasImage | null) => {
+    public drawImages = (selectedImage: CanvasImage | null) => {
         const sortByLayer = get(images).sort((a, b) => a.layer - b.layer);
 
         this.clear();
@@ -64,7 +64,7 @@ export class RenderCanvas extends Canvas {
         if (selectedImage) this.drawImage(selectedImage, true);
     };
 
-    drawImage = (image: CanvasImage, border: boolean = false) => {
+    public drawImage = (image: CanvasImage, border: boolean = false) => {
         let img = this.getImageSrc(image);
 
         if (border) {
@@ -84,7 +84,7 @@ export class RenderCanvas extends Canvas {
         );
     };
 
-    updateHiddenCanvas = (newImage: string) => {
+    public updateHiddenCanvas = (newImage: string) => {
         const { width, height, x, y } = this.drawingFrame;
         const hiddenCtx = this.hiddenCanvas.context;
 
@@ -131,7 +131,7 @@ export class RenderCanvas extends Canvas {
         console.log("hidden canvas updated");
     };
 
-    drawImageFromHiddenCanvas = () => {
+    private drawImageFromHiddenCanvas = () => {
         console.log("drawing from hidden canvas");
 
         this.context.drawImage(this.hiddenCanvas.canvas, 0, 0);

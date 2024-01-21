@@ -26,13 +26,13 @@ export class LogicCanvas extends Canvas {
         this.renderCanvas = renderCanvas;
     }
 
-    drawBorder = (image: CanvasImage) => {
+    public drawBorder = (image: CanvasImage) => {
         this.context.beginPath();
         this.context.strokeStyle = this.borderColor;
         this.context.strokeRect(image.x, image.y, image.width, image.height);
     };
 
-    drawCorners = (image: CanvasImage) => {
+    public drawCorners = (image: CanvasImage) => {
         this.context.beginPath();
         this.context.fillStyle = this.borderColor;
         this.context.fillRect(
@@ -64,7 +64,7 @@ export class LogicCanvas extends Canvas {
         );
     };
 
-    checkImage = (e: MouseEvent, image: CanvasImage): boolean => {
+    private checkImage = (e: MouseEvent, image: CanvasImage): boolean => {
         if (
             e.offsetX >= image.x &&
             e.offsetX <= image.x + image.width &&
@@ -77,7 +77,7 @@ export class LogicCanvas extends Canvas {
         return false;
     };
 
-    selectImage = (e: MouseEvent) => {
+    private selectImage = (e: MouseEvent) => {
         console.log("selecting");
 
         let clickedImages = get(images).filter((image) =>
@@ -116,7 +116,7 @@ export class LogicCanvas extends Canvas {
         this.checkHover(e, false);
     };
 
-    startDragging = (e: MouseEvent) => {
+    public startDragging = (e: MouseEvent) => {
         console.log("starting");
 
         this.checkHover(e, true);
@@ -138,7 +138,7 @@ export class LogicCanvas extends Canvas {
         this.startY = e.offsetY - this.selectedImage.y;
     };
 
-    drag = (e: MouseEvent) => {
+    public drag = (e: MouseEvent) => {
         if (!this.selectedImage) return;
 
         if (this.isResizing) {
@@ -149,16 +149,16 @@ export class LogicCanvas extends Canvas {
         this.dragImage(e);
     };
 
-    dragImage = (e: MouseEvent) => {
+    private dragImage = (e: MouseEvent) => {
         if (!this.selectedImage || !this.isDragging) return;
 
-        this.selectedImage.x = e.offsetX - this.startX;
-        this.selectedImage.y = e.offsetY - this.startY;
+        this.selectedImage.x = e.clientX - this.startX;
+        this.selectedImage.y = e.clientY - this.startY;
 
         this.renderCanvas.drawImages(this.selectedImage);
     };
 
-    resizeImage = (e: MouseEvent) => {
+    private resizeImage = (e: MouseEvent) => {
         if (!this.selectedImage || !this.isResizing) return;
         console.log("resizing");
 
@@ -200,7 +200,7 @@ export class LogicCanvas extends Canvas {
         this.renderCanvas.drawImages(this.selectedImage);
     };
 
-    stopDragging = () => {
+    public stopDragging = () => {
         console.log("stopping");
 
         if (!this.isDragging && !this.isResizing) return;
@@ -212,7 +212,11 @@ export class LogicCanvas extends Canvas {
         this.renderCanvas.drawImages(this.selectedImage);
     };
 
-    isMouseOnCorner = (e: MouseEvent, x: number, y: number): boolean => {
+    private isMouseOnCorner = (
+        e: MouseEvent,
+        x: number,
+        y: number
+    ): boolean => {
         return (
             e.offsetX >= x - this.borderWidth &&
             e.offsetX <= x + this.borderWidth &&
@@ -221,7 +225,9 @@ export class LogicCanvas extends Canvas {
         );
     };
 
-    checkHover = (e: MouseEvent, setDirection: boolean = false) => {
+    public checkHover = (e: MouseEvent, setDirection: boolean = false) => {
+        this.checkGrab(e);
+
         if (!this.selectedImage) return;
 
         const { x, y, width, height } = this.selectedImage;
@@ -244,7 +250,7 @@ export class LogicCanvas extends Canvas {
             this.canvas.style.cursor = "move";
             direction = "";
         } else {
-            this.canvas.style.cursor = "default";
+            this.checkGrab(e);
             direction = "";
         }
 
@@ -253,7 +259,18 @@ export class LogicCanvas extends Canvas {
         }
     };
 
-    async getMask() {
+    private checkGrab = (e: MouseEvent) => {
+        get(images).forEach((image) => {
+            if (this.checkImage(e, image)) {
+                this.canvas.style.cursor = "pointer";
+                console.log(image);
+            } else {
+                this.canvas.style.cursor = "default";
+            }
+        });
+    };
+
+    public async getBlob() {
         let tmpCanvas = document.createElement("canvas");
         let tmpContext = tmpCanvas.getContext("2d")!;
 
@@ -293,7 +310,7 @@ export class LogicCanvas extends Canvas {
             console.log(e);
             return;
         }
-        
+
         return drawingFrameBlob;
     }
 }
