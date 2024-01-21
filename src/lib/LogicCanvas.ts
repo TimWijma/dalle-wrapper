@@ -11,7 +11,7 @@ export class LogicCanvas extends Canvas {
     private resizeDirection: string = "";
     private startX: number = 0;
     private startY: number = 0;
-    private selectedImage: CanvasImage | null = null;
+    public selectedImage: CanvasImage | null = null;
     private drawingFrame = get(images).find(
         (image) => image.identifier === -1
     )!;

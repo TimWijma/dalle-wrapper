@@ -10,16 +10,18 @@ export class RenderCanvas extends Canvas {
     private drawingFrame = get(images).find(
         (image) => image.identifier === -1
     )!;
-    private hiddenCanvas: HTMLCanvasElement = document.createElement("canvas");
+    private hiddenCanvas: Canvas;
 
     constructor(
         canvas: HTMLCanvasElement,
         logicCanvas: LogicCanvas,
         borderWidth: number = 1,
-        borderColor: string = "black"
+        borderColor: string = "black",
+        hiddenCanvas: Canvas
     ) {
         super(canvas, borderWidth, borderColor);
         this.logicCanvas = logicCanvas;
+        this.hiddenCanvas = hiddenCanvas;
     }
 
     getImageSrc = (image: CanvasImage): HTMLImageElement => {
@@ -83,11 +85,8 @@ export class RenderCanvas extends Canvas {
     };
 
     updateHiddenCanvas = (newImage: string) => {
-        this.hiddenCanvas.width = this.canvas.width;
-        this.hiddenCanvas.height = this.canvas.height;
-
         const { width, height, x, y } = this.drawingFrame;
-        const hiddenCtx = this.hiddenCanvas.getContext("2d")!;
+        const hiddenCtx = this.hiddenCanvas.context;
 
         // Get images which are contained in the drawing frame
         let containedImages: CanvasImage[] = [];
@@ -109,7 +108,13 @@ export class RenderCanvas extends Canvas {
         sortByLayer.forEach((image) => {
             let img = this.getImageSrc(image);
 
-            hiddenCtx.drawImage(img, image.x, image.y, image.width, image.height);
+            hiddenCtx.drawImage(
+                img,
+                image.x,
+                image.y,
+                image.width,
+                image.height
+            );
 
             images.set(
                 get(images).filter((i) => i.identifier !== image.identifier)
@@ -117,7 +122,7 @@ export class RenderCanvas extends Canvas {
         });
 
         let img = new Image();
-        img.src = `data:image/png;base64,${newImage}`
+        img.src = `data:image/png;base64,${newImage}`;
         img.onload = () => {
             hiddenCtx.drawImage(img, x, y, width, height);
             this.drawImages(this.drawingFrame);
@@ -128,7 +133,7 @@ export class RenderCanvas extends Canvas {
 
     drawImageFromHiddenCanvas = () => {
         console.log("drawing from hidden canvas");
-        
-        this.context.drawImage(this.hiddenCanvas, 0, 0);
+
+        this.context.drawImage(this.hiddenCanvas.canvas, 0, 0);
     };
 }
