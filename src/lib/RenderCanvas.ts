@@ -7,9 +7,6 @@ import { get } from "svelte/store";
 export class RenderCanvas extends Canvas {
     logicCanvas: LogicCanvas;
     private imageCache: { [key: number]: HTMLImageElement } = {};
-    private drawingFrame = get(images).find(
-        (image) => image.identifier === -1
-    )!;
     private hiddenCanvas: Canvas;
 
     constructor(
@@ -52,21 +49,21 @@ export class RenderCanvas extends Canvas {
         this.drawImageFromHiddenCanvas();
 
         /**
-         * Draw images by layer with low to higher
+         * Draw images by layer from low to high
          * Draw selected image and drawing frame above the other images
          */
         sortByLayer.forEach((image) => {
-            if (image === this.drawingFrame || image === selectedImage) return;
+            if (image === selectedImage) return;
 
             this.drawImage(image, false);
         });
-        this.drawImage(this.drawingFrame, this.drawingFrame === selectedImage);
+        
         if (selectedImage) this.drawImage(selectedImage, true);
     };
 
     public drawImage = (image: CanvasImage, border: boolean = false) => {
         let img = this.getImageSrc(image);
-
+        
         if (border) {
             this.logicCanvas.drawBorder(image);
             this.logicCanvas.drawCorners(image);

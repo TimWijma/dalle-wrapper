@@ -62,5 +62,10 @@ const stopDrawing = () => {
 
     .canvas {
         flex: 1;
+        overflow: hidden;
+    }
+
+    .menu {
+        z-index: 2;
     }
 </style>

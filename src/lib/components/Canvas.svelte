@@ -17,7 +17,7 @@
     let hiddenCanvas: Canvas;
 
     const BORDER_WIDTH = 10;
-    const BORDER_COLOR = "red";
+    const BORDER_COLOR = "red"
 
     let canvasContainer: HTMLDivElement;
 
@@ -25,6 +25,8 @@
         $images = $images.filter((image) => image.identifier === -1);
         addImage(250, 250, imageString);
         // addImage(200, 200, imageString);
+
+        $renderCanvas.drawImages(null);
     };
 
     const addImage = (x: number, y: number, imageString: string) => {
@@ -45,8 +47,8 @@
     };
 
     onMount(() => {
-        width = canvasContainer.clientWidth;
-        height = canvasContainer.clientHeight;
+        width = logicCanvasElement.clientWidth;
+        height = logicCanvasElement.clientHeight;
 
         hiddenCanvas = new Canvas(
             hiddenCanvasElement,
@@ -76,9 +78,9 @@
     on:mousemove={$logicCanvas.drag}
     on:mouseup={$logicCanvas.stopDragging}
     on:resize={() => {
-        $logicCanvas.resize(canvasContainer);
-        $renderCanvas.resize(canvasContainer);
-        hiddenCanvas.resize(canvasContainer);
+        $logicCanvas.resize(logicCanvasElement);
+        $renderCanvas.resize(logicCanvasElement);
+        hiddenCanvas.resize(logicCanvasElement);
     }}
 />
 
@@ -104,6 +106,8 @@
         position: absolute;
         top: 0;
         left: 0;
+        height: 100vh;
+        width: 100vw;
     }
 
     .canvasContainer {

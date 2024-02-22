@@ -11,10 +11,7 @@ export class LogicCanvas extends Canvas {
     private resizeDirection: string = "";
     private startX: number = 0;
     private startY: number = 0;
-    public selectedImage: CanvasImage | null = null;
-    private drawingFrame = get(images).find(
-        (image) => image.identifier === -1
-    )!;
+    private selectedImage: CanvasImage | null = null;
 
     constructor(
         canvas: HTMLCanvasElement,
@@ -168,8 +165,11 @@ export class LogicCanvas extends Canvas {
         let newWidth = 0;
         let newHeight = 0;
 
+        const MAX_SIZE = 40;
+
         if (this.resizeDirection === "nw") {
             newWidth = Math.max(
+                MAX_SIZE,
                 width + (x - e.offsetX),
                 width + (y - e.offsetY) * aspectRatio
             );
@@ -178,6 +178,7 @@ export class LogicCanvas extends Canvas {
             this.selectedImage.y = y + (height - newHeight);
         } else if (this.resizeDirection === "ne") {
             newWidth = Math.max(
+                MAX_SIZE,
                 e.offsetX - x,
                 width + (y - e.offsetY) * aspectRatio
             );
@@ -185,13 +186,18 @@ export class LogicCanvas extends Canvas {
             this.selectedImage.y = y + (height - newHeight);
         } else if (this.resizeDirection === "sw") {
             newWidth = Math.max(
+                MAX_SIZE,
                 width + (x - e.offsetX),
                 (e.offsetY - y) * aspectRatio
             );
             newHeight = newWidth / aspectRatio;
             this.selectedImage.x = x + (width - newWidth);
         } else if (this.resizeDirection === "se") {
-            newWidth = Math.max(e.offsetX - x, (e.offsetY - y) * aspectRatio);
+            newWidth = Math.max(
+                MAX_SIZE,
+                e.offsetX - x,
+                (e.offsetY - y) * aspectRatio
+            );
             newHeight = newWidth / aspectRatio;
         }
 
@@ -263,7 +269,6 @@ export class LogicCanvas extends Canvas {
         get(images).forEach((image) => {
             if (this.checkImage(e, image)) {
                 this.canvas.style.cursor = "pointer";
-                console.log(image);
             } else {
                 this.canvas.style.cursor = "default";
             }
@@ -313,4 +318,10 @@ export class LogicCanvas extends Canvas {
 
         return drawingFrameBlob;
     }
+
+    public resize = (container: HTMLElement) => {
+        super.resize(container);
+
+        this.renderCanvas.drawImages(this.selectedImage);
+    };
 }

@@ -1,8 +1,15 @@
+import { get } from "svelte/store";
+import { images } from "./globalStore";
+
+
 export class Canvas {
     canvas: HTMLCanvasElement;
     context: CanvasRenderingContext2D;
     borderWidth: number;
     borderColor: string;
+    drawingFrame = get(images).find(
+        (image) => image.identifier === -1
+    )!;
 
     constructor(
         canvas: HTMLCanvasElement,
@@ -19,7 +26,7 @@ export class Canvas {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     };
 
-    resize = (container: HTMLDivElement) => {
+    resize(container: HTMLElement) {
         let imageData = this.context.getImageData(
             0,
             0,
