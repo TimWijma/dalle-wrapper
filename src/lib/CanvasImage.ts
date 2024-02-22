@@ -19,7 +19,7 @@ export class CanvasImage {
         this.y = y;
         this.width = width;
         this.height = height;
-        this.imageString = `data:image/png;base64,${imageString}`;
+        this.imageString = `data:image/png;base64,${imageString.replace("data:image/png;base64,", "")}`;
         this.layer = layer;
         this.identifier = identifier;
     }

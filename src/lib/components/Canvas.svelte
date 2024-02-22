@@ -17,26 +17,52 @@
     let hiddenCanvas: Canvas;
 
     const BORDER_WIDTH = 10;
-    const BORDER_COLOR = "red"
+    const BORDER_COLOR = "red";
 
     let canvasContainer: HTMLDivElement;
 
     export const createCanvas = (imageString: string) => {
         $images = $images.filter((image) => image.identifier === -1);
-        addImage(250, 250, imageString);
-        // addImage(200, 200, imageString);
 
-        $renderCanvas.drawImages(null);
+        addImage(200, 200, imageString);
     };
 
-    const addImage = (x: number, y: number, imageString: string) => {
+    export const uploadImage = (image: File) => {
+        let reader = new FileReader();
+
+        reader.onload = () => {
+            let img = new Image();
+            img.src = reader.result as string;
+            img.onload = () => {
+                let maxWidth = 450;
+                let maxHeight = 450;
+
+                if (img.width > maxWidth || img.height > maxHeight) {
+                    let scale = Math.min(
+                        maxWidth / img.width,
+                        maxHeight / img.height
+                    );
+                    let newWidth = img.width * scale;
+                    let newHeight = img.height * scale;
+
+                    addImage(newWidth, newHeight, reader.result as string);
+                } else {
+                    addImage(img.width, img.height, reader.result as string);
+                }
+            };
+        };
+
+        reader.readAsDataURL(image);
+    };
+
+    const addImage = (width: number, height: number, imageString: string) => {
         const currentLayer = Math.max(...$images.map((i) => i.layer), -1);
 
         const image = new CanvasImage(
-            x,
-            y,
-            256,
-            256,
+            200,
+            350 - height / 2,
+            width,
+            height,
             imageString,
             currentLayer + 1,
             $images.length
@@ -71,6 +97,8 @@
             BORDER_COLOR
         );
         $renderCanvas.logicCanvas = $logicCanvas;
+
+        $renderCanvas.drawImages($renderCanvas.drawingFrame);
     });
 </script>
 

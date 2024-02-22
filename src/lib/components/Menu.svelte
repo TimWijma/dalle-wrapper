@@ -4,8 +4,6 @@
     import { createEventDispatcher } from "svelte";
     import { OpenAIController } from "../OpenAIController";
 
-    export let image = "";
-
     const dispatch = createEventDispatcher();
 
     let apiKey = localStorage.getItem("openai-api-key") || "";
@@ -14,14 +12,14 @@
     let prompt = "An ocean with mountains in the background and a sunset sky.";
 
     const createImage = async () => {
-        image = testdata.data[0].b64_json || "";
+        let image = testdata.data[0].b64_json || "";
 
-        dispatch("imageCreated", image);
+        dispatch("createCanvas", image);
     };
 
-    const getMask = async () => {
-        console.log("get mask");
-        
+    const generateFrame = async () => {
+        console.log("generate frame");
+
         const maskBlob = await $logicCanvas.getBlob();
         if (maskBlob) {
             let newImage = await openai.outpaint(maskBlob, prompt);
@@ -34,13 +32,20 @@
             console.log("no blob");
         }
     };
+
+    let fileInput: HTMLInputElement;
+    const loadFile = (event: any) => {
+        console.log(event.target.files[0]);
+        
+
+        dispatch("imageCreated", event.target.files[0]);
+    };
 </script>
 
 <div class="container">
-    <input bind:value={prompt} placeholder="Prompt" />
+    <button on:click={createImage}>Create test image</button>
 
-    <button on:click={createImage}>Create Image</button>
-
+    <span>API key</span>
     <input
         bind:value={apiKey}
         placeholder="API key"
@@ -50,7 +55,24 @@
         }}
     />
 
-    <button on:click={() => getMask()}>get mask</button>
+    <input
+        type="file"
+        bind:this={fileInput}
+        accept="image/*"
+        name="image"
+        id="file"
+        on:change={loadFile}
+        style="display: none;"
+    />
+    <button
+        on:click={() => {
+            fileInput.click();
+        }}>Upload picture</button
+    >
+
+    <span>Prompt</span>
+    <input bind:value={prompt} placeholder="Prompt" />
+    <button on:click={() => generateFrame()}>Generate</button>
 </div>
 
 <style>

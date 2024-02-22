@@ -48,10 +48,6 @@ export class RenderCanvas extends Canvas {
 
         this.drawImageFromHiddenCanvas();
 
-        /**
-         * Draw images by layer from low to high
-         * Draw selected image and drawing frame above the other images
-         */
         sortByLayer.forEach((image) => {
             if (image === selectedImage) return;
 

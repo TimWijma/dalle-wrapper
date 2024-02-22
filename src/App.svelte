@@ -3,15 +3,14 @@
     import Menu from "./lib/components/Menu.svelte";
     import { images } from "./lib/globalStore";
 
-    let image = "";
-
     let canvas: Canvas;
 
     $images = $images.filter((image) => image.identifier === -1);
 
     const createImage = (e: any) => {
-        image = e.detail;
-        canvas.createCanvas(image);
+        let image = e.detail;
+
+        canvas.uploadImage(image);
     };
 </script>
 
@@ -20,7 +19,7 @@
         <Canvas bind:this={canvas} />
     </div>
     <div class="menu">
-        <Menu bind:image on:imageCreated={createImage} />
+        <Menu on:imageCreated={createImage} on:createCanvas={(e) => canvas.createCanvas(e.detail)} />
     </div>
 </div>
 
